@@ -23,6 +23,11 @@ public class BitcoinApplication extends Application {
         return Instant.ofEpochMilli(epoch).atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
+    public String getPrediction(List<BitcoinDataItem> list) {
+        BitcoinDataItem first = list.get(0);
+        BitcoinDataItem last = list.get(list.size() - 1);
+        return last.getY() - first.getY() > 0 ? "RISING" : "DOWNING";
+    }
 
     public BitcoinData getBitcoinData() throws IOException {
         URL url = new URL("https://api.blockchain.info/charts/market-price?timespan=1weeks&format=json");
@@ -58,7 +63,7 @@ public class BitcoinApplication extends Application {
         LocalDate endDate = parseLocalDate(bitcoinDataItems.get(bitcoinDataItems.size() - 1).getX());
 
         // create the x and y axes that the chart is going to use
-        NumberAxis xAxis= new NumberAxis(3, 10, 1);
+        NumberAxis xAxis= new NumberAxis(startDate.getDayOfMonth(), endDate.getDayOfMonth(), 1);
         NumberAxis yAxis = new NumberAxis();
 
         // set the titles for the axes
@@ -68,7 +73,8 @@ public class BitcoinApplication extends Application {
         // create the line chart. The values of the chart are given as numbers
         // and it uses the axes we created earlier
         LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
-        lineChart.setTitle("Relative support in "+ startDate.getDayOfMonth() + " " + startDate.getMonth() + " - " + endDate.getDayOfMonth() + " " + endDate.getMonth());
+        String title = String.format("Relative support in %s %s - %s %s. Prediction is: %s", startDate.getDayOfMonth(),startDate.getMonth(),endDate.getDayOfMonth(),endDate.getMonth(), getPrediction(bitcoinDataItems));
+        lineChart.setTitle(title);
 
         // create the data set that is going to be added to the line chart
         XYChart.Series chartData = new XYChart.Series();
